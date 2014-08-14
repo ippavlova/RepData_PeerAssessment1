@@ -31,12 +31,7 @@ activityData$day <- factor(activityData$day)
 # make a copy with only the complete cases
 d1 <- complete.cases(activityData)
 validActivityData <- activityData[d1,]
-
-```
-
-
-## What is mean total number of steps taken per day?
-```{r summarize1}
+# summarize by date and then by interval
 library(plyr)
 activitySumDate <- ddply(validActivityData, .(date), summarize, 
                       totalSteps = sum(steps), 
@@ -45,8 +40,13 @@ activitySumDate <- ddply(validActivityData, .(date), summarize,
 activitySumInterval <- ddply(validActivityData, .(interval), 
                              summarize, 
                              meanSteps = mean(steps) )
-
+# find the interval with the highest mean steps value
+maxSteps <- activitySumInterval[activitySumInterval$meanSteps == max(activitySumInterval$meanSteps),]
 ```
+
+
+## What is mean total number of steps taken per day?
+
 The mean and median steps per day are listed in the table below. Notice that the
 median is 0 for all days. This is because 0 is the most frequent number of steps
 in the data.
@@ -54,30 +54,28 @@ in the data.
  activitySumDate[,c(1,3,4)]
 ```
 
-This is a histogram of the total steps taken by day.  
-```{r plotDay1}
+This is a histogram of the total steps taken by day.  There are a few days that
+do not have data due primarily to the NA values. 
+```{r plotDay1,fig.height=4}
 library(ggplot2)
 ggplot(activitySumDate, aes(x=date,y=totalSteps )) + 
-      geom_histogram(stat="identity", fill="blue") + 
-      ggtitle("Total Steps by Day")
-
+      geom_histogram(stat="identity", fill="blue",width=0.8) + 
+      ggtitle("Total Steps by Day") + 
+      ylab("Total Steps") + xlab("Date")
 ```
 
 ## What is the average daily activity pattern?
-```{r meanInterval1}
 
-a <- activitySumInterval[activitySumInterval$meanSteps == max(activitySumInterval$meanSteps),]
-```
-The most steps occurred at interval `r a[1]` and has a mean value of `r a[2]` steps.
+The most steps occurred at interval `r maxSteps[1]` and has a mean value of `r maxSteps[2]` steps.
 
 This is a plot of the average number of steps taken by 5 minute interval across all days. 
-```{r plotInterval1}
+```{r plotInterval1,fig.height=4}
 library(ggplot2)
 ggplot(activitySumInterval, aes(x=interval,y=meanSteps)) + 
       geom_line() +
       geom_vline(x=c(800,930,1700), colour="blue") +
-      ggtitle("Total Steps by Interval\nWith vertical lines at 8AM, 9AM, 5PM")
-
+      ggtitle("Average Steps by Interval\nWith vertical lines at 8AM, 9AM, 5PM") +
+      ylab("Mean of Steps") + xlab("Interval")
 ```
 
 ## Imputing missing values
@@ -105,19 +103,29 @@ newActivitySumDate <- ddply(newActivityData, .(date), summarize,
                       totalSteps = sum(steps), 
                       meanSteps = mean(steps), 
                       medianSteps = median(steps) )
-
+activitySumIntervalDay <- ddply(newActivityData, .(interval,day), 
+                                summarize, 
+                                meanSteps = mean(steps))
 ```
 
 There are `r naSteps` NA values in the steps variable from the original data. 
 
 Here is a histogram of the activity data with the recoded values for the NA steps.
-```{r plotRecode}
+```{r plotRecode,fig.height=4}
 # plot the data
 library(ggplot2)
 ggplot(newActivitySumDate, aes(x=date,y=totalSteps)) + 
-      geom_histogram(stat="identity",fill="blue") +
-      ggtitle("Total Steps by Day")
+      geom_histogram(stat="identity",fill="blue", width=0.8) +
+      ggtitle("Total Steps by Day") +
+      ylab("Total Steps") + xlab("Date")
+```
 
+
+The below table shows the mean and median with the recoded values. One noticable 
+difference is that the days that had NA values now show up in the table with a 
+median value that is not zero. Oddly enough they all have a median of 33.5. 
+```{r newlistMeanMedian } 
+ newActivitySumDate[,c(1,3,4)]
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -125,17 +133,16 @@ A new variable has been set to **weekend** or **weekday** based on the day of th
 Saturday and Sunday are used for the weekend and all others for the weekday. 
 
 The weekday plot shows a sharp spike around 8-9am with moderate activity until 
-about 5pm then a drop in activity. For the weekend there is a smaller spike around 
+later in the day then a drop in activity. For the weekend there is a smaller spike around 
 the 8-9am time followed by generally more activity through out the day. 
 
-```{r plotFacet}
-activitySumIntervalDay <- ddply(newActivityData, .(interval,day), 
-                                summarize, 
-                                meanSteps = mean(steps))
+```{r plotFacet,fig.height=4.5}
 ggplot(activitySumIntervalDay, aes(x=interval,y=meanSteps)) + 
       geom_line() + 
       facet_grid(day ~ .) +
       geom_vline(x=c(800,930,1700), colour="blue") + 
-      ggtitle("Total Steps by Interval\nWith vertical lines at 8AM, 9AM, 5PM")
-
+      ggtitle("Average Steps by Interval\nWith vertical lines at 8AM, 9AM, 5PM") +
+      ylab("Mean of Steps") + xlab("Interval") +
+      theme(strip.text = element_text(face="bold"),
+            strip.background = element_rect(fill="green"))
 ```
