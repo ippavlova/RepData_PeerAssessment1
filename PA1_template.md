@@ -137,7 +137,7 @@ library(ggplot2)
 ggplot(activitySumInterval, aes(x=interval,y=meanSteps)) + 
       geom_line() +
       geom_vline(x=c(800,930,1700), colour="blue") +
-      ggtitle("Average Steps by Interval\nWith vertical lines at 8AM, 9AM, 5PM") +
+      ggtitle("Average Steps by Interval\nWith vertical lines at 8AM, 9:30AM, 5PM") +
       ylab("Mean of Steps") + xlab("Interval")
 ```
 
@@ -277,7 +277,7 @@ ggplot(activitySumIntervalDay, aes(x=interval,y=meanSteps)) +
       geom_line() + 
       facet_grid(day ~ .) +
       geom_vline(x=c(800,930,1700), colour="blue") + 
-      ggtitle("Average Steps by Interval\nWith vertical lines at 8AM, 9AM, 5PM") +
+      ggtitle("Average Steps by Interval\nWith vertical lines at 8AM, 9:30AM, 5PM") +
       ylab("Mean of Steps") + xlab("Interval") +
       theme(strip.text = element_text(face="bold"),
             strip.background = element_rect(fill="green"))
